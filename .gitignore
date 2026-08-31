@@ -1,0 +1,4 @@
+.venv/
+__pycache__/
+playwright-report/
+playwright-video/
