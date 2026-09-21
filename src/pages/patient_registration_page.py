@@ -20,6 +20,9 @@ class PatientRegistrationPage(BasePage):
         self.last_name_input = self.frame.locator("#form_lname")
         self.dob_input = self.frame.locator("#form_DOB")
         self.sex_select = self.frame.locator("#form_sex")
+        self.select_choices = self.frame.locator("#header_3 button")
+        self.provider_dropdown = self.frame.locator("#form_providerID")
+
         
         #Submission & Confirmation Buttons
         self.create_patient_button = self.frame.locator("#create")
@@ -52,10 +55,42 @@ class PatientRegistrationPage(BasePage):
         self.dob_input.fill(patient["dob"])
         self.sex_select.select_option(label=patient["gender"])
         return self
+
+    def select_provider(self):
+        self.select_choices.click()
+        select_provider = self.provider_dropdown
+        if select_provider.is_visible():
+            select_provider.select_option(value="6")
+        return self
+
     def submit_and_confirm(self) -> str:
         """Submits registration form, handles duplicate check modal, and returns PID."""
         self.create_patient_button.click()
-        self.confirm_create_button.click()
+
+        # Handle duplicate check modal if it appears
+        try:
+            self.confirm_create_button.wait_for(state="visible", timeout=5000)
+            # Allow Bootstrap modal fade-in animation to complete so modal('hide') is not dropped
+            self.page.wait_for_timeout(600)
+            self.confirm_create_button.click()
+
+            # If the modal remains visible (e.g. Bootstrap dropped hide during transition), retry
+            self.page.wait_for_timeout(500)
+            if self.confirm_create_button.is_visible():
+                self.confirm_create_button.click(force=True)
+
+            # If still visible, hide modal and trigger form submission
+            self.page.wait_for_timeout(500)
+            if self.confirm_create_button.is_visible():
+                try:
+                    self.page.evaluate("() => { if (window.top && window.top.jQuery) window.top.jQuery('.dialogModal').modal('hide'); }")
+                    self.frame.evaluate("() => { if (typeof srcConfirmSave === 'function') srcConfirmSave(); else document.forms[0].submit(); }")
+                except Exception:
+                    pass
+        except Exception:
+            # Duplicate check modal did not appear; submission proceeded directly
+            pass
+
         # Wait for the patient header banner to populate
         self.patient_title_banner.wait_for(state="visible", timeout=self.timeout)
         banner_text = self.patient_title_banner.inner_text()

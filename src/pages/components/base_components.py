@@ -9,7 +9,7 @@ class SidebarMenuComponent(BasePage):
         self.patient_menu = page.get_by_text("Patient", exact=True)
         self.new_search_menu =  page.get_by_text("New/Search", exact=True)
         self.flow_board_menu = page.get_by_text("Flow", exact=True)
-        self.calendar_menu = page.get_by_text("Calendar", exact=True)
+        self.calendar_menu = page.locator("#mainMenu").get_by_text("Calendar", exact=True)
 
     # Workflow Navigation Actions
     def navigate_to_patient_registration(self):

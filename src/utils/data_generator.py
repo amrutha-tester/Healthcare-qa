@@ -29,3 +29,19 @@ class PatientDataFactory:
             "state": fake.state_abbr(),
             "postal_code": fake.zipcode(),
         }
+
+class AppointmentDataFactory:
+    """Generates synthetic appointment data for EMR testing."""
+    @staticmethod
+    def generate_appointment(patient: str = None) -> Dict[str, Any]:
+        return {
+            "category": random.choice(["Office Visit", "Established Patient", "New Patient"]),
+            "patient": patient if patient is not None else f"Test_{fake.last_name()}",
+            "provider": random.choice(["6", "1", "5"]),
+            "hour": random.choice(["09", "10", "11", "12", "13", "14", "15", "16"]),
+            "minute": random.choice(["00", "15", "30", "45"]),
+            "duration": random.choice(["15", "30", "45"]),
+            "comments": fake.sentence(),
+        }
+
+   

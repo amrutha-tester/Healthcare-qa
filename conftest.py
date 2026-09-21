@@ -58,9 +58,9 @@ def admin_auth_state(browser: Browser, tmp_path_factory):
     return str(auth_file)
 
 @pytest.fixture
-def admin_page(browser: Browser) -> Page:
+def admin_page(browser: Browser, browser_context_args) -> Page:
     """Provides a fresh browser context logged in as admin."""
-    context = browser.new_context()
+    context = browser.new_context(**browser_context_args)
     page = context.new_page()
     LoginPage(page).navigation().login(ROLES["admin"]["username"], ROLES["admin"]["password"])
     yield page
@@ -71,31 +71,28 @@ def admin_page(browser: Browser) -> Page:
 # ──────────────────────────────────────────────────────────────────────────────
 
 @pytest.fixture
-def physician_page(browser: Browser) -> Page:
+def physician_page(context: BrowserContext) -> Page:
     """Provides a fresh browser context logged in as a physician."""
-    context = browser.new_context()
     page = context.new_page()
     LoginPage(page).navigation().login(ROLES["physician"]["username"], ROLES["physician"]["password"])
     yield page
-    context.close()
+    page.close()
 
 @pytest.fixture
-def clinician_page(browser: Browser) -> Page:
+def clinician_page(context: BrowserContext) -> Page:
     """Provides a fresh browser context logged in as a clinician."""
-    context = browser.new_context()
     page = context.new_page()
     LoginPage(page).navigation().login(ROLES["clinician"]["username"], ROLES["clinician"]["password"])
     yield page
-    context.close()
+    page.close()
 
 @pytest.fixture
-def receptionist_page(browser: Browser) -> Page:
+def receptionist_page(context: BrowserContext) -> Page:
     """Provides a fresh browser context logged in as a receptionist."""
-    context = browser.new_context()
     page = context.new_page()
     LoginPage(page).navigation().login(ROLES["receptionist"]["username"], ROLES["receptionist"]["password"])
     yield page
-    context.close()
+    page.close()
     
 @pytest.fixture
 def registered_patient(receptionist_page) -> dict:

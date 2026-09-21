@@ -1,0 +1,92 @@
+import re
+from playwright.sync_api import Page, expect
+from src.pages.base_page import BasePage
+from src.pages.components.base_components import SidebarMenuComponent
+
+class AppointmentPage(BasePage):
+    def __init__(self, page: Page):
+        super().__init__(page)
+        self.sidebar = SidebarMenuComponent(page)
+        # Calender frame where the new appointment form is located
+        self.frame = page.frame_locator('iframe[name="cal"]')
+        # Appointment Modal frame where the form inputs and save button are located
+        self.modal_frame = self.page.frame_locator('iframe[src*="add_edit_event.php"]')
+        # Find Patient Popup frame
+        self.find_patient_frame = self.page.frame_locator('iframe[name="findPatient"]')
+        
+        # Locator for calendar menu
+        self.calendar_button = self.sidebar.calendar_menu
+        
+        # Appointment Page Locators
+        self.add_appointment_button = self.frame.locator('a.btn.btn-primary[title="New Appointment"], a:has-text("+")').first
+        self.form_category_dropdown = self.modal_frame.locator('#form_category')
+        self.form_patient = self.modal_frame.locator('#form_patient')
+        self.form_patient_search = self.find_patient_frame.locator('#searchparm')
+        self.form_patient_search_button = self.find_patient_frame.locator('#submitbtn')
+        self.form_provider = self.modal_frame.locator('#provd')
+        self.form_time_slot_hour = self.modal_frame.locator('input[name="form_hour"], select[name="form_hour"]')
+        self.form_time_slot_minute = self.modal_frame.locator('input[name="form_minute"], select[name="form_minute"]')
+        self.form_duration = self.modal_frame.locator('input[name="form_duration"], select[name="form_duration"]')
+        self.form_comments = self.modal_frame.locator('input[name="form_comments"], textarea[name="form_comments"]')
+        self.form_save_button = self.modal_frame.locator('#form_save')
+        
+    def open_new_appointment(self):
+        """Navigates to the Calendar view and clicks 'New Appointment'."""
+        self.sidebar.navigate_to_calendar()
+        self.add_appointment_button.click()
+        return self
+
+    def search_patient(self, patient: str):
+        """Opens the patient search popup, searches for the patient, and selects them."""
+        # 1. Click form_patient to open findPatient iframe popup
+        self.form_patient.click()
+        # 2. Search for patient by name or PID
+        self.form_patient_search.fill(patient)
+        self.form_patient_search_button.click()
+        # 3. Select the matching patient from search results
+        patient_result = self.find_patient_frame.locator(f'td:has-text("{patient}"), a:has-text("{patient}")').first
+        patient_result.click()
+        return self
+
+    def select_provider(self, provider_value: str = "6", provider_label: str = None):
+        """Selects a provider by value (default '6' for demo provider) or label."""
+        if provider_label:
+            self.form_provider.select_option(label=provider_label)
+        else:
+            self.form_provider.select_option(value=provider_value)
+        return self
+
+    def set_time(self, hour: str = "09", minute: str = "00"):
+        """Sets appointment hour and minute."""
+        if self.form_time_slot_hour.is_visible():
+            self.form_time_slot_hour.fill(hour)
+        if self.form_time_slot_minute.is_visible():
+            self.form_time_slot_minute.fill(minute)
+        return self
+
+    def set_duration(self, duration: str = "15"):
+        """Sets appointment duration in minutes."""
+        if self.form_duration.is_visible():
+            self.form_duration.fill(duration)
+        return self
+
+    def save_appointment(self):
+        """Clicks the Save button to schedule the appointment."""
+        self.form_save_button.click()
+        return self
+
+    def fill_appointment_details(self, appointment: dict):
+        """Fills complete appointment details."""
+        if "category" in appointment:
+            self.form_category_dropdown.select_option(label=appointment["category"])
+        if "patient" in appointment:
+            self.search_patient(appointment["patient"])
+        if "provider" in appointment:
+            self.select_provider(provider_value=appointment["provider"])
+        if "hour" in appointment:
+            self.set_time(hour=appointment["hour"], minute=appointment["minute"])
+        if "duration" in appointment:
+            self.set_duration(appointment["duration"])
+        if "comments" in appointment:
+            self.form_comments.fill(appointment["comments"])
+        return self
