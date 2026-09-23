@@ -11,11 +11,16 @@ class AppointmentPage(BasePage):
         self.frame = page.frame_locator('iframe[name="cal"]')
         # Appointment Modal frame where the form inputs and save button are located
         self.modal_frame = self.page.frame_locator('iframe[src*="add_edit_event.php"]')
+        # Flowboard frame
+        self.flowboard_frame = self.page.frame_locator('iframe[name="flb"]')
         # Find Patient Popup frame
         self.find_patient_frame = self.page.frame_locator('iframe[name="findPatient"]')
         
         # Locator for calendar menu
         self.calendar_button = self.sidebar.calendar_menu
+
+        # Locator for flowboard menu
+        self.flowboard_button = self.sidebar.flow_board_menu
         
         # Appointment Page Locators
         self.add_appointment_button = self.frame.locator('a.btn.btn-primary[title="New Appointment"], a:has-text("+")').first
@@ -29,6 +34,9 @@ class AppointmentPage(BasePage):
         self.form_duration = self.modal_frame.locator('input[name="form_duration"], select[name="form_duration"]')
         self.form_comments = self.modal_frame.locator('input[name="form_comments"], textarea[name="form_comments"]')
         self.form_save_button = self.modal_frame.locator('#form_save')
+        self.form_delete_button = self.modal_frame.locator('#form_delete')
+        self.form_status = self.modal_frame.locator('#form_apptstatus')
+        self.form_room = self.modal_frame.locator('#form_room')
         
     def open_new_appointment(self):
         """Navigates to the Calendar view and clicks 'New Appointment'."""
@@ -58,10 +66,10 @@ class AppointmentPage(BasePage):
 
     def set_time(self, hour: str = "09", minute: str = "00"):
         """Sets appointment hour and minute."""
-        if self.form_time_slot_hour.is_visible():
-            self.form_time_slot_hour.fill(hour)
-        if self.form_time_slot_minute.is_visible():
-            self.form_time_slot_minute.fill(minute)
+        self.form_time_slot_hour.wait_for(state="visible", timeout=self.timeout)
+        self.form_time_slot_hour.fill(hour)
+        self.form_time_slot_minute.wait_for(state="visible", timeout=self.timeout)
+        self.form_time_slot_minute.fill(minute)
         return self
 
     def set_duration(self, duration: str = "15"):
@@ -70,10 +78,6 @@ class AppointmentPage(BasePage):
             self.form_duration.fill(duration)
         return self
 
-    def save_appointment(self):
-        """Clicks the Save button to schedule the appointment."""
-        self.form_save_button.click()
-        return self
 
     def fill_appointment_details(self, appointment: dict):
         """Fills complete appointment details."""
@@ -89,4 +93,64 @@ class AppointmentPage(BasePage):
             self.set_duration(appointment["duration"])
         if "comments" in appointment:
             self.form_comments.fill(appointment["comments"])
+        return self
+
+    
+    def save_appointment(self):
+        """Clicks the Save button to schedule the appointment, accepting any availability/conflict dialogs."""
+        dialog_handler = lambda dialog: dialog.accept()
+        self.page.on("dialog", dialog_handler)
+        try:
+            self.form_save_button.click()
+            self.page.locator('iframe[src*="add_edit_event.php"]').wait_for(state="hidden", timeout=self.timeout)
+            try:
+                self.page.evaluate("() => { if (window.top && window.top.jQuery) window.top.jQuery('.modal.show, .dialogModal.show').modal('hide'); }")
+            except Exception:
+                pass
+        finally:
+            self.page.remove_listener("dialog", dialog_handler)
+        return self
+
+    def open_existing_appointment(self, patient_last_name: str):
+        """Finds and clicks an appointment on the calendar grid."""
+        event_locator = self.frame.locator(
+            f'.event_appointment:has-text("{patient_last_name}") a.event_time'
+        ).first
+        if not event_locator.is_visible():
+            self.sidebar.navigate_to_calendar()
+            self.page.wait_for_timeout(2000)
+        event_locator.wait_for(state="visible", timeout=self.timeout)
+        event_locator.click()
+        return self
+    
+    def delete_or_cancel_appointment(self):
+        """Clicks the Delete button inside the modal and accepts the confirmation alert."""
+        dialog_handler = lambda dialog: dialog.accept()
+        self.page.on("dialog", dialog_handler)
+        try:
+            self.form_delete_button.click()
+            self.page.locator('iframe[src*="add_edit_event.php"]').wait_for(state="hidden", timeout=self.timeout)
+            try:
+                self.page.evaluate("() => { if (window.top && window.top.jQuery) window.top.jQuery('.modal.show, .dialogModal.show').modal('hide'); }")
+            except Exception:
+                pass
+        finally:
+            self.page.remove_listener("dialog", dialog_handler)
+        return self
+
+    def check_in_patient(self):
+        """Check-in the patient and update the appointment status to Arrived (@)."""
+        self.form_status.wait_for(state="visible", timeout=self.timeout)
+        self.form_status.select_option(value="@")
+        if self.form_room.is_visible():
+            try:
+                self.form_room.select_option(value="1")
+            except Exception:
+                self.form_room.select_option(index=1)
+        return self
+
+    def navigate_to_flowboard(self):
+        """Navigate to flowboard"""
+        self.sidebar.navigate_to_flowboard()
+        self.page.wait_for_timeout(5000)
         return self
