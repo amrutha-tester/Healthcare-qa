@@ -2,6 +2,9 @@
 from src.pages import patient_registration_page
 from src.pages import base_page
 from src.pages.patient_registration_page import PatientRegistrationPage
+from src.pages.appointment_page import AppointmentPage
+from src.pages.clinician_page import ClinicianPage
+from src.utils.data_generator import AppointmentDataFactory
 import pytest
 import os
 from playwright.sync_api import Browser, BrowserContext, Page
@@ -71,28 +74,31 @@ def admin_page(browser: Browser, browser_context_args) -> Page:
 # ──────────────────────────────────────────────────────────────────────────────
 
 @pytest.fixture
-def physician_page(context: BrowserContext) -> Page:
+def physician_page(browser: Browser, browser_context_args) -> Page:
     """Provides a fresh browser context logged in as a physician."""
+    context = browser.new_context(**browser_context_args)
     page = context.new_page()
     LoginPage(page).navigation().login(ROLES["physician"]["username"], ROLES["physician"]["password"])
     yield page
-    page.close()
+    context.close()
 
 @pytest.fixture
-def clinician_page(context: BrowserContext) -> Page:
+def clinician_page(browser: Browser, browser_context_args) -> Page:
     """Provides a fresh browser context logged in as a clinician."""
+    context = browser.new_context(**browser_context_args)
     page = context.new_page()
     LoginPage(page).navigation().login(ROLES["clinician"]["username"], ROLES["clinician"]["password"])
     yield page
-    page.close()
+    context.close()
 
 @pytest.fixture
-def receptionist_page(context: BrowserContext) -> Page:
+def receptionist_page(browser: Browser, browser_context_args) -> Page:
     """Provides a fresh browser context logged in as a receptionist."""
+    context = browser.new_context(**browser_context_args)
     page = context.new_page()
     LoginPage(page).navigation().login(ROLES["receptionist"]["username"], ROLES["receptionist"]["password"])
     yield page
-    page.close()
+    context.close()
     
 @pytest.fixture
 def registered_patient(receptionist_page) -> dict:
@@ -113,4 +119,30 @@ def registered_patient(receptionist_page) -> dict:
         "last_name": patient_data["last_name"],
         "dob": patient_data["dob"],
         "gender": patient_data["gender"]
+    }
+
+@pytest.fixture
+def checked_in_patient(receptionist_page, registered_patient: dict) -> dict:
+    """
+    Creates an appointment for the registered patient and checks them in (Arrived status).
+    Provides patient data and appointment info to clinician workflow tests.
+    """
+    appointment_page = AppointmentPage(receptionist_page)
+    patient_last_name = registered_patient["last_name"]
+    appointment_data = AppointmentDataFactory.generate_appointment(patient=patient_last_name)
+    # 1. Create new appointment
+    appointment_page.open_new_appointment()
+    appointment_page.fill_appointment_details(appointment_data)
+    appointment_page.save_appointment()
+    appointment_page.page.wait_for_timeout(3000)
+    # 2. Check in the patient
+    appointment_page.open_existing_appointment(patient_last_name)
+    appointment_page.page.wait_for_timeout(3000)
+    appointment_page.check_in_patient()
+    appointment_page.save_appointment()
+    appointment_page.page.wait_for_timeout(3000)
+    receptionist_page.context.close()
+    return {
+        **registered_patient,
+        "appointment": appointment_data
     }

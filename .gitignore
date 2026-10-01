@@ -2,5 +2,4 @@
 __pycache__/
 playwright-report/
 playwright-video/
-test-results/
 tests/__pycache__/
