@@ -9,10 +9,15 @@ class ClinicianPage(BasePage):
         self.sidebar = SidebarMenuComponent(page)
         # Flowboard frame
         self.flowboard_frame = self.page.frame_locator('iframe[name="flb"]')
+        self.status_modal_frame = self.page.frame_locator('iframe#modalframe, iframe[src*="patient_tracker_status"]')
         # Patient search locators
         self.patient_name_input = self.flowboard_frame.locator("#form_patient_name")
         self.provider_select = self.flowboard_frame.locator("#form_provider")
         self.filter_button = self.flowboard_frame.locator("#filter_submit")
+        #Patient status advance locators
+        self.status_type_dropdown = self.status_modal_frame.locator("#statustype")
+        self.room_dropdown = self.status_modal_frame.locator("#roomnum")
+        self.status_save_button = self.status_modal_frame.locator('button:has-text("Save"), input[value*="Save"]')
         # Encounter tab locator
         self.encounter_tab = self.page.locator('span.tabTitle:has-text("Encounter")')
         # Encounter frame
@@ -148,4 +153,42 @@ class ClinicianPage(BasePage):
         self.save_vitals.click()
         
         return alert_messages[0] if alert_messages else ""
+
+    #Check if vitals are recorded
+    def check_vitals_recorded(self):
+        """Checks if vitals are recorded."""
+        return self.vitals_summary_bmi.is_visible()
+
+    #Locate patient in flowboard
+    def locate_patient_in_flowboard(self, patient_name):
+        """Locates the patient in the flowboard."""
+        self.sidebar.navigate_to_flowboard()
+        self.page.wait_for_timeout(5000)
+        self.provider_select.select_option("6")
+        self.patient_name_input.fill(patient_name)
+        self.filter_button.click()
+        self.page.wait_for_timeout(5000)
+        patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")')
+        expect(patient_locator).to_be_visible(timeout=self.timeout)
+        self.page.wait_for_timeout(5000)
+        appt_status = patient_locator.locator('a.btn:has-text("Room 1")').first
+        expect(appt_status).to_be_visible(timeout=self.timeout)
+        appt_status.click()
+        self.page.wait_for_timeout(5000)
+        return self
     
+    #Patient status advance function
+    def advance_patient_status(self):
+        """Advances the patient status."""
+        # 1. Click Status dropdown and wait for it to be visible
+        self.status_type_dropdown.wait_for(state="visible", timeout=self.timeout)
+        self.status_type_dropdown.click()
+        # 2. Select the desired status
+        self.status_type_dropdown.select_option(value="<")
+        # 3. Select the room number
+        self.room_dropdown.wait_for(state="visible", timeout=self.timeout)
+        self.room_dropdown.click()
+        self.room_dropdown.select_option(value="2")
+        # 4. Click Save
+        self.status_save_button.click()
+        return self

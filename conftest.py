@@ -1,17 +1,15 @@
 
-from src.pages import patient_registration_page
-from src.pages import base_page
+import os
+import pytest
+from playwright.sync_api import Browser, BrowserContext, Page
+from src.pages.base_page import BasePage
 from src.pages.patient_registration_page import PatientRegistrationPage
 from src.pages.appointment_page import AppointmentPage
 from src.pages.clinician_page import ClinicianPage
-from src.utils.data_generator import AppointmentDataFactory
-import pytest
-import os
-from playwright.sync_api import Browser, BrowserContext, Page
 from src.pages.login_page import LoginPage
 from src.config.roles import ROLES
 from src.config.settings import settings
-from src.utils.data_generator import PatientDataFactory
+from src.utils.data_generator import PatientDataFactory, AppointmentDataFactory, VitalsDataFactory
 
 # BROWSER CONFIGURATION
 # This fixture customizes every browser context in all tests
@@ -145,4 +143,30 @@ def checked_in_patient(receptionist_page, registered_patient: dict) -> dict:
     return {
         **registered_patient,
         "appointment": appointment_data
+    }
+
+@pytest.fixture
+def checked_in_patient_with_vitals(clinician_page: Page, checked_in_patient: dict) -> dict:
+    """
+    Takes a checked-in patient, navigates via the clinician role to their encounter,
+    and records their vitals.
+    Provides patient data, appointment info, and recorded vitals data to downstream workflow tests.
+    """
+    clinician = ClinicianPage(clinician_page)
+    vitals_data = VitalsDataFactory.generate_vitals()
+    patient_last_name = checked_in_patient["last_name"]
+    
+    # 1. Select checked-in patient in flowboard and navigate to encounter
+    clinician.select_checked_in_patient(patient_last_name)
+    clinician.navigate_to_encounter_tab()
+    clinician.page.wait_for_timeout(3000)
+    
+    # 2. Enter and save vitals
+    clinician.enter_vitals(vitals_data)
+    clinician.page.wait_for_timeout(3000)
+    clinician_page.context.close()
+    
+    return {
+        **checked_in_patient,
+        "vitals": vitals_data
     }
