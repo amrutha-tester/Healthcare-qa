@@ -25,6 +25,7 @@ class PhysicianPage(BasePage):
         self.patient_name_input = self.flowboard_frame.locator("#form_patient_name")
         self.provider_select = self.flowboard_frame.locator("#form_provider")
         self.filter_button = self.flowboard_frame.locator("#filter_submit")
+        self.visit_status = self.flowboard_frame.locator("#form_apptstatus")
         #Patient status advance locators
         self.status_type_dropdown = self.status_modal_frame.locator("#statustype")
         self.room_dropdown = self.status_modal_frame.locator("#roomnum")
@@ -108,4 +109,39 @@ class PhysicianPage(BasePage):
         expect(self.soap_locked_badge).to_be_visible(timeout=self.timeout)
         return self
 
-    
+     #Locate patient in flowboard
+    def locate_patient_in_flowboard(self, patient_name):
+        """Locates the patient in the flowboard."""
+        self.sidebar.navigate_to_flowboard()
+        self.page.wait_for_timeout(5000)
+        self.provider_select.select_option("6")
+        self.patient_name_input.fill(patient_name)
+        self.filter_button.click()
+        self.page.wait_for_timeout(5000)
+        patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")')
+        expect(patient_locator).to_be_visible(timeout=self.timeout)
+        self.page.wait_for_timeout(5000)
+        appt_status = patient_locator.locator('a.btn:has-text("Room 1")').first
+        expect(appt_status).to_be_visible(timeout=self.timeout)
+        appt_status.click()
+        self.page.wait_for_timeout(5000)
+        return self
+
+    def advance_patient_status(self):
+        """Advances the patient status, done by physician."""
+        #Click Status dropdown and wait for it to be visible
+        self.status_type_dropdown.wait_for(state="visible", timeout=self.timeout)
+        self.status_type_dropdown.click()
+        #Select the desired status
+        self.status_type_dropdown.select_option(value="$")
+        #Click Save
+        self.status_save_button.click()
+        return self
+
+    def verify_updated_status(self,patient_last_name):
+        self.page.wait_for_timeout(5000)
+        self.visit_status.select_option(value="$")
+        self.filter_button.click()
+        patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_last_name}")')
+        expect(patient_locator).to_be_visible(timeout=self.timeout)
+        return self        

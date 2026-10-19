@@ -110,4 +110,32 @@ class SoapNoteDataFactory:
         "No actual medication, investigation, or treatment is prescribed."
     ),
 }
-        
+    @staticmethod
+    def generate_incomplete_soap_note() -> Dict[str, Any]:
+        return {
+    "subjective": (
+        "Synthetic patient presents for a routine follow-up visit. "
+        "Reports feeling well with no new concerns. "
+        "Denies fever, cough, chest discomfort, shortness of breath, "
+        "or dizziness. "
+        "This note contains fictional data created exclusively "
+        "for automation testing."
+    ),
+    "objective": (
+        "Blood pressure: 120/80 mmHg. "
+        "Pulse: 72 beats per minute. "
+        "Oxygen saturation: 98%. "
+        "Height: 59.06 in (150.00 cm). "
+        "Weight: 110.23 lb (50.00 kg). "
+        "BMI: 22 kg/m², as displayed by the application. "
+        "BMI status: Normal, as displayed by the application. "
+        "No additional examination findings entered for this synthetic encounter."
+    ),
+    "assessment": (
+        "Routine follow-up encounter for a fictional patient. "
+        "Vital-sign documentation completed. "
+        "The application displays BMI as 22 kg/m² "
+        "and BMI status as Normal. "
+        "No real clinical diagnosis is established by this test note."
+    ),
+}

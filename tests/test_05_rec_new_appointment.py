@@ -17,13 +17,13 @@ def test_open_appointment_for_registered_patient(receptionist_page: Page, regist
     appointment_page = AppointmentPage(receptionist_page)
     appointment_data = AppointmentDataFactory.generate_appointment(patient=registered_patient["last_name"])
 
-    # 1. Open New Appointment modal/form from Calendar
+    # Open New Appointment modal/form from Calendar
     appointment_page.open_new_appointment()
 
-    # 2. Verify appointment form elements are displayed
+    # Verify appointment form elements are displayed
     expect(appointment_page.form_category_dropdown).to_be_visible()
     appointment_page.fill_appointment_details(appointment_data)
 
-    # 5. Confirm appointment form save action is available and save
+    # Confirm appointment form save action is available and save
     expect(appointment_page.form_save_button).to_be_visible()
     appointment_page.save_appointment()

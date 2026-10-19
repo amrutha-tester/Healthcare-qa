@@ -6,10 +6,11 @@ from src.pages.base_page import BasePage
 from src.pages.patient_registration_page import PatientRegistrationPage
 from src.pages.appointment_page import AppointmentPage
 from src.pages.clinician_page import ClinicianPage
+from src.pages.physician_page import PhysicianPage
 from src.pages.login_page import LoginPage
 from src.config.roles import ROLES
 from src.config.settings import settings
-from src.utils.data_generator import PatientDataFactory, AppointmentDataFactory, VitalsDataFactory
+from src.utils.data_generator import PatientDataFactory, AppointmentDataFactory, VitalsDataFactory, SoapNoteDataFactory
 
 # BROWSER CONFIGURATION
 # This fixture customizes every browser context in all tests
@@ -169,4 +170,33 @@ def checked_in_patient_with_vitals(clinician_page: Page, checked_in_patient: dic
     return {
         **checked_in_patient,
         "vitals": vitals_data
+    }
+
+@pytest.fixture
+def patient_with_soap_note(physician_page: Page, checked_in_patient_with_vitals: dict) -> dict:
+    """
+    Takes a checked-in patient with vitals, navigates via the physician role to their encounter,
+    and records a soap note and signs it.
+    Provides patient data, appointment info, and recorded soap note data to downstream workflow tests.
+    """
+    physician = PhysicianPage(physician_page)
+    soap_note_data = SoapNoteDataFactory.generate_soap_note()
+    patient_last_name = checked_in_patient_with_vitals["last_name"]
+    
+    # 1. Select checked-in patient in flowboard and navigate to encounter
+    physician.select_patient_from_flowboard(patient_last_name)
+    physician.navigate_to_encounter_tab()
+    physician.page.wait_for_timeout(3000)
+    # 2. Fill and save soap note
+    physician.open_soap_form()
+    physician.page.wait_for_timeout(5000)
+    physician.fill_soap_form(soap_note_data)
+    physician.save_soap_form()
+    physician.page.wait_for_timeout(5000)
+    physician.sign_soap_form("physician")
+    physician.page.wait_for_timeout(5000)
+    physician_page.context.close()
+    return {
+        **checked_in_patient_with_vitals,
+        "soap_note": soap_note_data
     }

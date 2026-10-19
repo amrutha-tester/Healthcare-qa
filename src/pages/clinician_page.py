@@ -188,7 +188,7 @@ class ClinicianPage(BasePage):
         # 3. Select the room number
         self.room_dropdown.wait_for(state="visible", timeout=self.timeout)
         self.room_dropdown.click()
-        self.room_dropdown.select_option(value="2")
+        self.room_dropdown.select_option(value="1")
         # 4. Click Save
         self.status_save_button.click()
         return self
