@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="1" skipped="0" tests="31" time="1491.336" timestamp="2026-10-23T16:20:19.947319+00:00" hostname="0a5a698e06f9"><testcase classname="tests.test_01_smoke" name="test_environment_connection[chromium]" time="1.260" /><testcase classname="tests.test_02_role_based_login" name="test_admin_login[chromium]" time="1.613" /><testcase classname="tests.test_02_role_based_login" name="test_physician_login[chromium]" time="1.727" /><testcase classname="tests.test_02_role_based_login" name="test_clinician_login[chromium]" time="1.644" /><testcase classname="tests.test_02_role_based_login" name="test_receptionist_login[chromium]" time="1.672" /><testcase classname="tests.test_02_role_based_login" name="test_login_invalid_credentials[chromium]" time="1.291" /><testcase classname="tests.test_03_rec_register_patient" name="test_receptionist_can_register_new_patient[chromium]" time="8.347" /><testcase classname="tests.test_03_rec_register_patient" name="test_registration_fails_when_mandatory_field_missing[chromium-last_name]" time="3.622" /><testcase classname="tests.test_03_rec_register_patient" name="test_registration_fails_when_mandatory_field_missing[chromium-first_name]" time="3.295" /><testcase classname="tests.test_04_rec_duplicate_patient" name="test_duplicate_patient_warning[chromium]" time="8.874" /><testcase classname="tests.test_05_rec_search_patient" name="test_search_patient[chromium]" time="8.103" /><testcase classname="tests.test_06_rec_new_appointment" name="test_open_appointment_for_registered_patient[chromium]" time="9.069" /><testcase classname="tests.test_07_rec_double_booking" name="test_provider_double_booking_conflict[chromium]" time="17.612" /><testcase classname="tests.test_08_rec_reschedule_cancel_apt" name="test_reschedule_appointment[chromium]" time="21.749" /><testcase classname="tests.test_08_rec_reschedule_cancel_apt" name="test_cancel_appointment[chromium]" time="25.215" /><testcase classname="tests.test_09_rec_check_in_patient" name="test_check_in_patient[chromium]" time="30.579" /><testcase classname="tests.test_10_clin_select_checkedin_patient" name="test_select_checkedin_patient[chromium]" time="32.775" /><testcase classname="tests.test_11_clin_record_vitals" name="test_recording_vitals[chromium]" time="39.502"><error message="failed on setup with &quot;playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.&#10;Call log:&#10;  - waiting for locator(&quot;iframe[src*=\&quot;add_edit_event.php\&quot;]&quot;).content_frame.locator(&quot;#form_save&quot;)&#10;    - locator resolved to &lt;input value=&quot;Save&quot; type=&quot;button&quot; id=&quot;form_save&quot; name=&quot;form_save&quot; class=&quot;col-sm mx-sm-2 my-2 my-sm-auto btn btn-primary&quot;/&gt;&#10;  - attempting click action&#10;    2 × waiting for element to be visible, enabled and stable&#10;      - element is visible, enabled and stable&#10;      - scrolling into view if needed&#10;      - done scrolling&#10;      - &lt;div tabindex=&quot;-1&quot; role=&quot;dialog&quot; id=&quot;findPatient&quot; aria-modal=&quot;true&quot; name=&quot;findPatient&quot; class=&quot;modal fade dialogModal show&quot;&gt;…&lt;/div&gt; intercepts pointer events&#10;    - retrying click action&#10;    - waiting 20ms&#10;    2 × waiting for element to be visible, enabled and stable&#10;      - element is visible, enabled and stable&#10;      - scrolling into view if needed&#10;      - done scrolling&#10;      - &lt;div tabindex=&quot;-1&quot; role=&quot;dialog&quot; id=&quot;findPatient&quot; aria-modal=&quot;true&quot; name=&quot;findPatient&quot; class=&quot;modal fade dialogModal show&quot;&gt;…&lt;/div&gt; intercepts pointer events&#10;    - retrying click action&#10;      - waiting 100ms&#10;    52 × waiting for element to be visible, enabled and stable&#10;       - element is visible, enabled and stable&#10;       - scrolling into view if needed&#10;       - done scrolling&#10;       - &lt;div tabindex=&quot;-1&quot; role=&quot;dialog&quot; id=&quot;findPatient&quot; aria-modal=&quot;true&quot; name=&quot;findPatient&quot; class=&quot;modal fade dialogModal show&quot;&gt;…&lt;/div&gt; intercepts pointer events&#10;     - retrying click action&#10;       - waiting 500ms&#10;    - waiting for element to be visible, enabled and stable&#10;    - element is visible, enabled and stable&#10;    - scrolling into view if needed&#10;    - done scrolling&quot;">receptionist_page = &lt;Page url='http://openemr/interface/main/tabs/main.php?token_main=59GN1dMedwMzKNlT6EiyoRwpmeNKXBrhOa8WKaky'&gt;
+registered_patient = {'pid': '32', 'first_name': 'Michael', 'last_name': 'Test_Garcia', 'dob': '1951-07-28', ...}
+
+    @pytest.fixture
+    def checked_in_patient(receptionist_page, registered_patient: dict) -&gt; dict:
+        """
+        Creates an appointment for the registered patient and checks them in (Arrived status).
+        Provides patient data and appointment info to clinician workflow tests.
+        """
+        appointment_page = AppointmentPage(receptionist_page)
+        patient_last_name = registered_patient["last_name"]
+        appointment_data = AppointmentDataFactory.generate_appointment(patient=patient_last_name)
+        # 1. Create new appointment
+        appointment_page.open_new_appointment()
+        appointment_page.fill_appointment_details(appointment_data)
+&gt;       appointment_page.save_appointment()
+
+conftest.py:135: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/pages/appointment_page.py:104: in save_appointment
+    self.form_save_button.click()
+/usr/local/lib/python3.12/dist-packages/playwright/sync_api/_generated.py:11021: in click
+    self._sync(
+/usr/local/lib/python3.12/dist-packages/playwright/_impl/_locator.py:174: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/dist-packages/playwright/_impl/_frame.py:598: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/usr/local/lib/python3.12/dist-packages/playwright/_impl/_connection.py:78: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;playwright._impl._connection.Connection object at 0x7d66a354fe90&gt;
+cb = &lt;function Channel.send.&lt;locals&gt;.&lt;lambda&gt; at 0x7d66a329dee0&gt;
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -&gt; Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        parsed_st = _attach_api_call_information(
+            getattr(task, "__pw_stack__", None) or _capture_stack_trace(),
+            is_internal,
+            title,
+        )
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+&gt;           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("iframe[src*=\"add_edit_event.php\"]").content_frame.locator("#form_save")
+E               - locator resolved to &lt;input value="Save" type="button" id="form_save" name="form_save" class="col-sm mx-sm-2 my-2 my-sm-auto btn btn-primary"/&gt;
+E             - attempting click action
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is visible, enabled and stable
+E                 - scrolling into view if needed
+E                 - done scrolling
+E                 - &lt;div tabindex="-1" role="dialog" id="findPatient" aria-modal="true" name="findPatient" class="modal fade dialogModal show"&gt;…&lt;/div&gt; intercepts pointer events
+E               - retrying click action
+E               - waiting 20ms
+E               2 × waiting for element to be visible, enabled and stable
+E                 - element is visible, enabled and stable
+E                 - scrolling into view if needed
+E                 - done scrolling
+E                 - &lt;div tabindex="-1" role="dialog" id="findPatient" aria-modal="true" name="findPatient" class="modal fade dialogModal show"&gt;…&lt;/div&gt; intercepts pointer events
+E               - retrying click action
+E                 - waiting 100ms
+E               52 × waiting for element to be visible, enabled and stable
+E                  - element is visible, enabled and stable
+E                  - scrolling into view if needed
+E                  - done scrolling
+E                  - &lt;div tabindex="-1" role="dialog" id="findPatient" aria-modal="true" name="findPatient" class="modal fade dialogModal show"&gt;…&lt;/div&gt; intercepts pointer events
+E                - retrying click action
+E                  - waiting 500ms
+E               - waiting for element to be visible, enabled and stable
+E               - element is visible, enabled and stable
+E               - scrolling into view if needed
+E               - done scrolling
+
+/usr/local/lib/python3.12/dist-packages/playwright/_impl/_connection.py:636: TimeoutError</error></testcase><testcase classname="tests.test_11_clin_record_vitals" name="test_invalid_vitals[chromium]" time="40.362" /><testcase classname="tests.test_11_clin_record_vitals" name="test_abnormal_vitals[chromium]" time="55.205" /><testcase classname="tests.test_12_clin_add_allergy" name="test_add_allergy[chromium]" time="67.517" /><testcase classname="tests.test_13_clin_status_advance" name="test_status_advance[chromium]" time="30.649"><failure message="AssertionError: Locator expected to be visible&#10;Actual value: None&#10;Error: strict mode violation: locator(&quot;tr:has-text(\&quot;Test_Martin\&quot;)&quot;) resolved to 2 elements:&#10;    1) &lt;tr data-pid=&quot;10&quot; data-apptcat=&quot;9&quot; data-facility=&quot;3&quot; data-provider=&quot;6&quot; class=&quot;text-small&quot; data-apptstatus=&quot;@&quot; data-pname=&quot;Test_Martin, Dana C&quot;&gt;…&lt;/tr&gt; aka get_by_role(&quot;row&quot;, name=&quot;10 Test_Martin, Dana C 15&quot;)&#10;    2) &lt;tr data-pid=&quot;10&quot; data-apptcat=&quot;5&quot; data-facility=&quot;3&quot; data-provider=&quot;6&quot; class=&quot;text-small&quot; data-apptstatus=&quot;-&quot; data-pname=&quot;Test_Martin, Dana C&quot;&gt;…&lt;/tr&gt; aka get_by_text(&quot;Test_Martin, Dana C D T 2026-10-23 12:30 - None Office Visit receptionist&quot;)&#10; &#10;Call log:&#10;  - Expect &quot;to_be_visible&quot; locator(&quot;iframe[name=\&quot;flb\&quot;]&quot;).content_frame.locator(&quot;tr:has-text(\&quot;Test_Martin\&quot;)&quot;) with timeout 20000ms&#10;  - waiting for locator(&quot;iframe[name=\&quot;flb\&quot;]&quot;).content_frame.locator(&quot;tr:has-text(\&quot;Test_Martin\&quot;)&quot;)">clinician_page = &lt;Page url='http://openemr/interface/main/tabs/main.php?token_main=HDAexZYLfeYenbl28POd6seWon2MhqyZFlpQhFnK'&gt;
+checked_in_patient = {'pid': '36', 'first_name': 'Luis', 'last_name': 'Test_Martin', 'dob': '1996-11-17', ...}
+
+    @pytest.mark.regression
+    def test_status_advance(clinician_page: Page, checked_in_patient: dict) -&gt; None:
+        """
+        Test case for advancing patient status.
+        """
+        clinician = ClinicianPage(clinician_page)
+        vitals_data = VitalsDataFactory.generate_vitals()
+        patient_last_name = checked_in_patient["last_name"]
+&gt;       clinician.select_checked_in_patient(patient_last_name)
+
+tests/test_13_clin_status_advance.py:14: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;src.pages.clinician_page.ClinicianPage object at 0x7d66a35dfb60&gt;
+patient_name = 'Test_Martin'
+
+    def select_checked_in_patient(self, patient_name):
+        self.sidebar.navigate_to_flowboard()
+        self.page.wait_for_timeout(5000)
+        self.provider_select.select_option("6")
+        self.patient_name_input.fill(patient_name)
+        self.filter_button.click()
+        self.page.wait_for_timeout(5000)
+        patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")')
+&gt;       expect(patient_locator).to_be_visible(timeout=self.timeout)
+E       AssertionError: Locator expected to be visible
+E       Actual value: None
+E       Error: strict mode violation: locator("tr:has-text(\"Test_Martin\")") resolved to 2 elements:
+E           1) &lt;tr data-pid="10" data-apptcat="9" data-facility="3" data-provider="6" class="text-small" data-apptstatus="@" data-pname="Test_Martin, Dana C"&gt;…&lt;/tr&gt; aka get_by_role("row", name="10 Test_Martin, Dana C 15")
+E           2) &lt;tr data-pid="10" data-apptcat="5" data-facility="3" data-provider="6" class="text-small" data-apptstatus="-" data-pname="Test_Martin, Dana C"&gt;…&lt;/tr&gt; aka get_by_text("Test_Martin, Dana C D T 2026-10-23 12:30 - None Office Visit receptionist")
+E        
+E       Call log:
+E         - Expect "to_be_visible" locator("iframe[name=\"flb\"]").content_frame.locator("tr:has-text(\"Test_Martin\")") with timeout 20000ms
+E         - waiting for locator("iframe[name=\"flb\"]").content_frame.locator("tr:has-text(\"Test_Martin\")")
+
+src/pages/clinician_page.py:55: AssertionError</failure></testcase><testcase classname="tests.test_14_phy_enter_soapnote" name="test_enter_soap_note[chromium]" time="97.299" /><testcase classname="tests.test_15_phy_partial_soapnote" name="test_partial_soap_note[chromium]" time="105.677" /><testcase classname="tests.test_16_phy_esign_validation" name="test_esign_invalid_password[chromium]" time="90.259" /><testcase classname="tests.test_17_phy_add_prescription" name="test_add_prescription[chromium]" time="100.170" /><testcase classname="tests.test_18_phy_add_fee_sheet_code" name="test_add_fee_sheet_codes[chromium]" time="81.325" /><testcase classname="tests.workflows.test_01_receptionist_workflow" name="test_receptionist_workflow[chromium]" time="31.198" /><testcase classname="tests.workflows.test_02_clinician_workflow" name="test_clinician_workflow[chromium]" time="111.571" /><testcase classname="tests.workflows.test_03_physician_workflow" name="test_physician_workflow[chromium]" time="190.685" /><testcase classname="tests.workflows.test_04_e2e_workflow" name="test_e2e_workflow[chromium]" time="271.034" /></testsuite></testsuites>

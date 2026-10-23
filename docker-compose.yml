@@ -26,3 +26,16 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+
+  playwright-tests:
+    build: .
+    environment:
+      BASE_URL: "http://openemr"
+      HEADLESS: "True"
+    volumes:
+      - ./reports:/app/reports
+      - ./test-results:/app/test-results
+    depends_on:
+      - openemr
+    profiles:
+      - test

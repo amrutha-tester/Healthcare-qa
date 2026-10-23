@@ -1,0 +1,101 @@
+trigger:
+  branches:
+    include:
+      - main
+      - master
+
+# Uses your local PC registered in the 'Default' Self-Hosted Agent Pool
+pool:
+  name: Default
+
+variables:
+  COMPOSE_PROJECT_NAME: healthcare-qa
+
+stages:
+  - stage: E2E_Tests
+    displayName: 'OpenEMR Playwright E2E Tests'
+    jobs:
+      - job: RunPlaywrightInDocker
+        displayName: 'Run OpenEMR & Playwright in Docker'
+        timeoutInMinutes: 30
+        steps:
+          # Step 1: Start OpenEMR & MariaDB containers
+          - powershell: |
+              Write-Host "Starting OpenEMR and MariaDB containers..."
+              docker compose up -d mysql openemr
+            displayName: '1. Start OpenEMR Docker Stack'
+
+          # Step 2: Wait for OpenEMR to finish auto-configuration and seed demo roles
+          - powershell: |
+              Write-Host "Waiting for OpenEMR to be ready on http://localhost:8080..."
+              $maxRetries = 40
+              $retryCount = 0
+              $ready = $false
+
+              while (-not $ready -and $retryCount -lt $maxRetries) {
+                  try {
+                      $response = Invoke-WebRequest -Uri "http://localhost:8080/interface/login/login.php?site=default" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+                      if ($response.StatusCode -eq 200) {
+                          $ready = $true
+                          Write-Host "OpenEMR is up and responding!"
+                      }
+                  } catch {
+                      $retryCount++
+                      Write-Host "Waiting for OpenEMR setup... Attempt $retryCount of $maxRetries"
+                      Start-Sleep -Seconds 5
+                  }
+              }
+
+              if (-not $ready) {
+                  docker compose logs openemr
+                  throw "OpenEMR failed to become ready in time."
+              }
+
+              Write-Host "Seeding demo roles (clinician, physician, receptionist) and disabling telemetry popup..."
+              Get-Content docker\seed_demo_users.sql | docker exec -i healthcare-qa-openemr-1 mariadb --skip-ssl -u openemr --password=openemr -h mysql openemr
+              Write-Host "Demo users seeded successfully!"
+            displayName: '2. Wait for OpenEMR & Seed Demo Roles'
+
+          # Step 3A: Run Cross-Browser Smoke Tests (Chromium, Firefox, WebKit)
+          - powershell: |
+              if (!(Test-Path -Path "reports")) { New-Item -ItemType Directory -Path "reports" }
+              if (!(Test-Path -Path "test-results")) { New-Item -ItemType Directory -Path "test-results" }
+
+              Write-Host "Running Cross-Browser Smoke Tests on Chromium, Firefox, and WebKit..."
+              docker compose --profile test run --rm --build playwright-tests pytest -m smoke -o "addopts=-v --browser=chromium --browser=firefox --browser=webkit --tracing=retain-on-failure --screenshot=only-on-failure" --junitxml=reports/junit-smoke-crossbrowser.xml --html=reports/report-smoke-crossbrowser.html --self-contained-html
+            displayName: '3A. Cross-Browser Smoke Tests (Chromium, Firefox, WebKit)'
+            continueOnError: true
+
+          # Step 3B: Run Full Regression & Workflow Suite on Chromium
+          - powershell: |
+              Write-Host "Running Full Regression & Clinical Workflow Suite on Chromium..."
+              docker compose --profile test run --rm playwright-tests pytest -o "addopts=-v --browser=chromium --tracing=retain-on-failure --screenshot=only-on-failure" --junitxml=reports/junit-regression.xml --html=reports/report-regression.html --self-contained-html
+            displayName: '3B. Full Regression & E2E Suite (Chromium)'
+            continueOnError: true
+
+          # Step 4: Publish JUnit Test Results to Azure DevOps 'Tests' Tab
+          - task: PublishTestResults@2
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'reports/junit-*.xml'
+              testRunTitle: 'OpenEMR Playwright E2E & Cross-Browser Suite'
+              failTaskOnFailedTests: true
+            displayName: '4. Publish Test Results to Azure DevOps'
+
+          # Step 5: Publish HTML Report & Failure Screenshots/Traces as Artifacts
+          - task: PublishPipelineArtifact@1
+            condition: always()
+            inputs:
+              targetPath: 'reports'
+              artifact: 'Playwright-HTML-Report'
+              publishLocation: 'pipeline'
+            displayName: '5. Publish HTML Report Artifact'
+
+          - task: PublishPipelineArtifact@1
+            condition: always()
+            inputs:
+              targetPath: 'test-results'
+              artifact: 'Playwright-Traces-And-Screenshots'
+              publishLocation: 'pipeline'
+            displayName: '6. Publish Traces & Screenshots'
