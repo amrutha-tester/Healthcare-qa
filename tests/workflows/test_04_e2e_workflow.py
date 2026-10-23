@@ -6,11 +6,12 @@ from src.pages.patient_registration_page import PatientRegistrationPage
 from src.pages.appointment_page import AppointmentPage
 from src.pages.clinician_page import ClinicianPage
 from src.pages.physician_page import PhysicianPage
+from src.pages.dashboard_page import DashboardPage
 from src.utils.data_generator import PatientDataFactory, AppointmentDataFactory, VitalsDataFactory, SoapNoteDataFactory
 
 @pytest.mark.workflow
 def test_e2e_workflow(browser: Browser, browser_context_args: dict) -> None:
-    """Test end-to-end workflow: full patient journey through the system:Register patient, create appointment, record vitals and create SOAP note and advance patient status"""
+    """Test end-to-end workflow: full patient journey through the system:Register patient, create appointment, record vitals,add allergies, create SOAP note, add prescription, add fee sheet code and advance patient status"""
     # Generate test data
     patient_data = PatientDataFactory.generate_patient()
     appointment_data = AppointmentDataFactory.generate_appointment(patient=patient_data["last_name"])
@@ -47,25 +48,42 @@ def test_e2e_workflow(browser: Browser, browser_context_args: dict) -> None:
     clin_page = clin_context.new_page()
     LoginPage(clin_page).navigation().login(ROLES["clinician"]["username"], ROLES["clinician"]["password"])
     clinician = ClinicianPage(clin_page)
+    dashboard = DashboardPage(clin_page)
+    #Record Vitals (Clinician)
     clinician.select_checked_in_patient(patient_data["last_name"])
     expect(clinician.encounter_tab).to_be_visible(timeout=clinician.timeout)
     clinician.navigate_to_encounter_tab()
     clinician.page.wait_for_timeout(5000)
     clinician.enter_vitals(vitals_data)
     clinician.page.wait_for_timeout(5000)
+    #Verify Vitals
+    clinician.open_past_encounter()
+    clinician.page.wait_for_timeout(5000)
+    expect(clinician.vitals_summary_bmi).to_contain_text('22 kg/m^2')
+    #Add allergies
+    dashboard.navigate_to_dashboard_tab()
+    dashboard.page.wait_for_timeout(5000)
+    dashboard.add_allergy()
+    dashboard.page.wait_for_timeout(5000)
+    #verify allergies
+    dashboard.dashboard.click()
+    dashboard.page.wait_for_timeout(5000)
+    expect(dashboard.dashboard_frame.get_by_text("penicillin (Mild)")).to_be_visible(timeout=dashboard.timeout)
 
-    # Clinician advances status to Room 1
+    # Clinician advances status to "in exam room"
     clinician.locate_patient_in_flowboard(patient_data["last_name"])
     clinician.page.wait_for_timeout(5000)
     clinician.advance_patient_status()
     clinician.page.wait_for_timeout(5000)
     clin_context.close()
 
-    #3. Physician (Create SOAP Note, Sign & Advance Status)
+    #3. Physician (Create SOAP Note,Add Prescription,Add Fee Sheet Code & Advance Status)
     phys_context = browser.new_context(**browser_context_args)
     phys_page = phys_context.new_page()
     LoginPage(phys_page).navigation().login(ROLES["physician"]["username"], ROLES["physician"]["password"])
     physician = PhysicianPage(phys_page)
+    dashboard = DashboardPage(phys_page)
+    # Create SOAP note (Physician)
     physician.select_patient_from_flowboard(patient_data["last_name"])
     expect(physician.encounter_tab).to_be_visible(timeout=physician.timeout)
     physician.navigate_to_encounter_tab()
@@ -78,8 +96,26 @@ def test_e2e_workflow(browser: Browser, browser_context_args: dict) -> None:
     physician.sign_soap_form("physician")
     physician.page.wait_for_timeout(5000)
     physician.verify_soap_signed()
-
-    # Physician advances status to Complete
+    #Add prescription
+    dashboard.navigate_to_dashboard_tab()
+    dashboard.page.wait_for_timeout(5000)
+    dashboard.add_prescription()
+    dashboard.page.wait_for_timeout(5000)
+    #verify prescription
+    dashboard.navigate_to_dashboard_tab()
+    dashboard.page.wait_for_timeout(5000)
+    expect(dashboard.dashboard_frame.get_by_text("amoxicillin")).to_be_visible(timeout=dashboard.timeout)
+    #add fee sheet code
+    physician.navigate_to_encounter_tab()
+    physician.page.wait_for_timeout(5000)
+    physician.open_fee_sheet()
+    physician.page.wait_for_timeout(5000)
+    physician.add_fee_code_and_save()
+    physician.page.wait_for_timeout(5000)
+    #verify fee code
+    expect(physician.fee_sheet_table).to_contain_text("CPT4")
+    expect(physician.fee_sheet_table).to_contain_text("99201")
+    # Physician advances status to "completed"
     physician.locate_patient_in_flowboard(patient_data["last_name"])
     physician.page.wait_for_timeout(5000)
     physician.advance_patient_status()

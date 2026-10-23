@@ -149,12 +149,38 @@ The framework maps standard healthcare personas to validate role-specific UI cap
    # playwright install
    ```
 
+### Local OpenEMR (Docker Setup)
+
+If running OpenEMR locally with Docker:
+
+1. **Start containers**:
+   ```bash
+   docker compose up -d
+   ```
+2. **Wait for initial configuration (~2 minutes)**:
+   On first launch, OpenEMR configures MySQL, SSL certificates, and starts Apache. You can follow container progress with:
+   ```bash
+   docker compose logs -f openemr
+   ```
+   Wait until you see `Starting Apache!` and `resuming normal operations`.
+
+3. **Seed demo users & roles**:
+   Seed the required roles (`receptionist`, `clinician`, `physician`, `accountant`) into MariaDB:
+   - **Windows (PowerShell)**:
+     ```powershell
+     Get-Content docker/seed_demo_users.sql | docker compose exec -T mysql mariadb -u root -proot openemr
+     ```
+   - **Linux / macOS**:
+     ```bash
+     cat docker/seed_demo_users.sql | docker compose exec -T mysql mariadb -u root -proot openemr
+     ```
+
 ### Environment Configuration
 
 Create a `.env` file in the project root (or rely on default settings in [src/config/settings.py](file:///c:/Users/user/Desktop/Github/Healthcare-qa/src/config/settings.py)):
 
 ```ini
-BASE_URL="https://demo.openemr.io/openemr"
+BASE_URL="http://localhost:8080"
 DEFAULT_TIMEOUT=20000.0
 HEADLESS=false
 SLOW_MO=0.5

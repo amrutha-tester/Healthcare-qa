@@ -69,6 +69,17 @@ class VitalsDataFactory:
             "weight_kg": "80",
             "expected_bmi": "28"
         }
+    @staticmethod
+    def generate_abnormal_vitals() -> Dict[str, Any]:
+        return {
+        "systolic": "210",
+        "diastolic": "130",
+        "pulse": "155",
+        "spo2": "85",
+        "height_cm": "150",
+        "weight_kg": "110",
+        "expected_bmi": "49"
+    }
 
 class SoapNoteDataFactory:
     """Generates synthetic SOAP note data for EMR testing."""

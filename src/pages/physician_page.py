@@ -47,6 +47,18 @@ class PhysicianPage(BasePage):
         self.esign_submit_button = self.summary_frame.locator('#esign-signature-form').get_by_role("button", name="Sign")
         #Locked badge assertion
         self.soap_locked_badge = self.summary_frame.get_by_role("link", name="Locked")
+        #Fee sheet locators
+        self.administrative_tab = self.forms_frame.locator('#category_Administrative')
+        self.fee_sheet = self.forms_frame.locator('a.dropdown-item:has-text("Fee Sheet")')
+        #Fee sheet frame
+        self.fee_sheet_frame = self.encounter_frame.frame_locator('iframe[src*="fee_sheet"], iframe[name^="enctabs-"]').last
+        self.new_patient_code = self.fee_sheet_frame.get_by_role("button", name="New Patient")
+        self.established_patient_code = self.fee_sheet_frame.get_by_role("button", name="Established Patient")
+        self.new_patient_brief_code = self.fee_sheet_frame.locator(".code-choice").first
+        self.established_patient_brief_code = self.fee_sheet_frame.locator(".code-choice").first
+        self.ok_button = self.fee_sheet_frame.get_by_role("button", name="OK")
+        self.fee_sheet_table = self.fee_sheet_frame.locator("#selected_codes")
+        self.fee_sheet_save = self.fee_sheet_frame.locator('button[name="bn_save"]')
 
     def select_patient_from_flowboard(self, patient_name):
         self.sidebar.navigate_to_flowboard()
@@ -145,3 +157,25 @@ class PhysicianPage(BasePage):
         patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_last_name}")')
         expect(patient_locator).to_be_visible(timeout=self.timeout)
         return self        
+
+    def open_fee_sheet(self):
+        self.administrative_tab.click()
+        self.fee_sheet.wait_for(state="visible", timeout=self.timeout)
+        self.fee_sheet.click()
+        self.page.wait_for_timeout(5000)
+        return self
+
+    def add_fee_code_and_save(self):
+        self.new_patient_code.wait_for(state="visible", timeout=self.timeout)
+        self.new_patient_code.click()
+        self.new_patient_brief_code.wait_for(state="visible", timeout=self.timeout)
+        self.new_patient_brief_code.click()
+        self.ok_button.wait_for(state="visible", timeout=self.timeout)
+        self.ok_button.click()
+        expect(self.fee_sheet_table).to_contain_text("CPT4", timeout=self.timeout)
+        self.fee_sheet_save.wait_for(state="visible", timeout=self.timeout)
+        self.fee_sheet_save.click()
+        self.page.wait_for_timeout(5000)
+        return self    
+
+    

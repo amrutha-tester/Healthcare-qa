@@ -20,12 +20,13 @@ class DashboardPage(BasePage):
         self.save_button = self.modal_frame.locator('button[name="form_save"]')
         self.dashboard = self.dashboard_frame.get_by_role("link", name="Dashboard")
         #Prescription Module locators
-        self.prescription_edit_btn = self.dashboard_frame.locator('a[href*="controller.php?prescription"], #prescriptions_ps_expand a').first
+        self.prescription_edit_btn = self.dashboard_frame.locator('.iframe').first
         self.prescription_modal_frame = self.page.frame_locator('iframe[name="editScripts"]')
-        self.add_btn = self.prescription_modal_frame.locator('#addButton')
+        self.add_prescription_btn = self.prescription_modal_frame.locator('#addButton')
         self.drug_select_box = self.prescription_modal_frame.locator('#select2-drug-container')
-        self.drug_input = self.prescription_modal_frame.locator('input.select2-search__field')
-        self.drug_option = self.prescription_modal_frame.locator('li.select2-results__option:has-text("amoxicillin")').first
+        self.drug_combobox = self.prescription_modal_frame.get_by_label("", exact=True)
+        self.drug_search_box = self.prescription_modal_frame.get_by_role("searchbox",name="Search")
+        self.drug_option = self.prescription_modal_frame.get_by_role("option", name="amoxicillin").first
         self.quantity_input = self.prescription_modal_frame.locator('#quantity')
         self.units_input = self.prescription_modal_frame.locator('#size')
         self.units_dropdown = self.prescription_modal_frame.locator('#unit')
@@ -54,4 +55,25 @@ class DashboardPage(BasePage):
         self.severity_dropdown.select_option("mild")
         self.save_button.click()
         self.page.wait_for_timeout(5000)
+        return self
+
+    def add_prescription(self):
+        self.prescription_edit_btn.click()
+        self.page.wait_for_timeout(5000)
+        self.add_prescription_btn.click()
+        self.page.wait_for_timeout(5000)
+        self.drug_combobox.click()
+        self.drug_search_box.fill("amoxicillin")
+        self.drug_option.click()
+        self.page.wait_for_timeout(5000)
+        self.quantity_input.fill("10")
+        self.units_input.fill("500")
+        self.units_dropdown.select_option("1")
+        self.dosage_input.fill("2")
+        self.form_input.select_option("2")
+        self.form_route.select_option("bymouth")
+        self.form_interval.select_option("9")
+        self.save_prescription.click()
+        self.page.wait_for_timeout(5000)
+        self.quit_prescription.click()
         return self

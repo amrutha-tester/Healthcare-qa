@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mariadb:11.4
+    command: ['mariadbd', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_general_ci']
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  openemr:
+    image: openemr/openemr:latest
+    ports:
+      - "8080:80"
+      - "8443:443"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_ROOT_PASS: root
+      MYSQL_USER: openemr
+      MYSQL_PASS: openemr
+      OE_USER: admin
+      OE_PASS: pass
+      DEMO_MODE: standard
+    depends_on:
+      mysql:
+        condition: service_healthy
