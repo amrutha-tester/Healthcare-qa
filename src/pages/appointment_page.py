@@ -38,8 +38,28 @@ class AppointmentPage(BasePage):
         self.form_status = self.modal_frame.locator('#form_apptstatus')
         self.form_room = self.modal_frame.locator('#form_room')
         
+    def _cleanup_all_modals(self):
+        """Force-removes any lingering OpenEMR Bootstrap dialog overlays and backdrops."""
+        try:
+            self.page.evaluate(
+                """() => {
+                    if (window.top && window.top.document) {
+                        const doc = window.top.document;
+                        doc.querySelectorAll('.dialogModal, .modal.show, .modal-backdrop').forEach(el => el.remove());
+                        if (doc.body) {
+                            doc.body.classList.remove('modal-open');
+                            doc.body.style.removeProperty('overflow');
+                            doc.body.style.removeProperty('padding-right');
+                        }
+                    }
+                }"""
+            )
+        except Exception:
+            pass
+
     def open_new_appointment(self):
         """Navigates to the Calendar view and clicks 'New Appointment'."""
+        self._cleanup_all_modals()
         self.sidebar.navigate_to_calendar()
         self.add_appointment_button.click()
         return self
@@ -54,6 +74,21 @@ class AppointmentPage(BasePage):
         # 3. Select the matching patient from search results
         patient_result = self.find_patient_frame.locator(f'td:has-text("{patient}"), a:has-text("{patient}")').first
         patient_result.click()
+        # 4. Ensure the #findPatient modal wrapper is completely removed so it never blocks #form_save
+        try:
+            self.page.locator('iframe[name="findPatient"]').wait_for(state="hidden", timeout=5000)
+        except Exception:
+            pass
+        try:
+            self.page.evaluate(
+                """() => {
+                    if (window.top && window.top.document) {
+                        window.top.document.querySelectorAll('#findPatient, div[name="findPatient"]').forEach(el => el.remove());
+                    }
+                }"""
+            )
+        except Exception:
+            pass
         return self
 
     def select_provider(self, provider_value: str = "6", provider_label: str = None):
@@ -103,16 +138,14 @@ class AppointmentPage(BasePage):
         try:
             self.form_save_button.click()
             self.page.locator('iframe[src*="add_edit_event.php"]').wait_for(state="hidden", timeout=self.timeout)
-            try:
-                self.page.evaluate("() => { if (window.top && window.top.jQuery) window.top.jQuery('.modal.show, .dialogModal.show').modal('hide'); }")
-            except Exception:
-                pass
+            self._cleanup_all_modals()
         finally:
             self.page.remove_listener("dialog", dialog_handler)
         return self
 
     def open_existing_appointment(self, patient_last_name: str):
         """Finds and clicks an appointment on the calendar grid."""
+        self._cleanup_all_modals()
         event_locator = self.frame.locator(
             f'.event_appointment:has-text("{patient_last_name}") a.event_time'
         ).first
@@ -130,10 +163,7 @@ class AppointmentPage(BasePage):
         try:
             self.form_delete_button.click()
             self.page.locator('iframe[src*="add_edit_event.php"]').wait_for(state="hidden", timeout=self.timeout)
-            try:
-                self.page.evaluate("() => { if (window.top && window.top.jQuery) window.top.jQuery('.modal.show, .dialogModal.show').modal('hide'); }")
-            except Exception:
-                pass
+            self._cleanup_all_modals()
         finally:
             self.page.remove_listener("dialog", dialog_handler)
         return self
