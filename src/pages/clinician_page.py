@@ -51,7 +51,7 @@ class ClinicianPage(BasePage):
         self.patient_name_input.fill(patient_name)
         self.filter_button.click()
         self.page.wait_for_timeout(5000)
-        patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")')
+        patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")').first
         expect(patient_locator).to_be_visible(timeout=self.timeout)
         expect(patient_locator.locator('a.btn:has-text("Room 1")')).to_be_visible()
          # Click the patient link to open their encounter/chart

@@ -12,7 +12,7 @@ class PatientDataFactory:
     def generate_patient() -> Dict[str, Any]:
         gender = random.choice(["Male", "Female"])
         first_name = fake.first_name_male() if gender == "Male" else fake.first_name_female()
-        last_name = f"Test_{fake.last_name()}"  # Prefix helps identify automation test data
+        last_name = f"Test_{fake.last_name()}_{fake.lexify('???')}"  # Prefix helps identify automation test data
         
         return {
             "title": "Mr." if gender == "Male" else "Ms.",
