@@ -58,8 +58,9 @@ stages:
 
           # Step 3A: Run Cross-Browser Smoke Tests (Chromium, Firefox, WebKit)
           - powershell: |
-              if (!(Test-Path -Path "reports")) { New-Item -ItemType Directory -Path "reports" }
-              if (!(Test-Path -Path "test-results")) { New-Item -ItemType Directory -Path "test-results" }
+              Write-Host "Cleaning old reports and test-results..."
+              if (Test-Path -Path "reports") { Remove-Item -Path "reports\*" -Recurse -Force } else { New-Item -ItemType Directory -Path "reports" }
+              if (Test-Path -Path "test-results") { Remove-Item -Path "test-results\*" -Recurse -Force } else { New-Item -ItemType Directory -Path "test-results" }
 
               Write-Host "Running Cross-Browser Smoke Tests on Chromium, Firefox, and WebKit..."
               docker compose --profile test run --rm --build playwright-tests pytest -m smoke -o "addopts=-v --browser=chromium --browser=firefox --browser=webkit --tracing=retain-on-failure --screenshot=only-on-failure" --junitxml=reports/junit-smoke-crossbrowser.xml --html=reports/report-smoke-crossbrowser.html --self-contained-html
