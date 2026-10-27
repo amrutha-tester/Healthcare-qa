@@ -49,10 +49,17 @@ INSERT INTO gacl_groups_aro_map (group_id, aro_id) VALUES
 
 UPDATE gacl_aro_seq SET id = 15;
 
--- Clear previous test runs' patients, encounters, appointments, and Flow Board entries while keeping provider schedules
+-- Clear previous test runs' patients, encounters, clinical forms, e-signatures, appointments, and Flow Board entries
 TRUNCATE TABLE patient_data;
 TRUNCATE TABLE form_encounter;
 TRUNCATE TABLE forms;
+TRUNCATE TABLE esign_signatures;
+TRUNCATE TABLE form_soap;
+TRUNCATE TABLE form_vitals;
+TRUNCATE TABLE lists;
+TRUNCATE TABLE prescriptions;
+TRUNCATE TABLE billing;
+UPDATE sequences SET id = 1;
 DELETE FROM openemr_postcalendar_events WHERE pc_pid <> '' AND pc_pid IS NOT NULL;
 TRUNCATE TABLE patient_tracker;
 TRUNCATE TABLE patient_tracker_element;

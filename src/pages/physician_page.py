@@ -46,7 +46,7 @@ class PhysicianPage(BasePage):
         #Sign / Submit button
         self.esign_submit_button = self.summary_frame.locator('#esign-signature-form').get_by_role("button", name="Sign")
         #Locked badge assertion
-        self.soap_locked_badge = self.summary_frame.get_by_role("link", name="Locked")
+        self.soap_locked_badge = self.summary_frame.get_by_role("link", name="Locked").first
         #Fee sheet locators
         self.administrative_tab = self.forms_frame.locator('#category_Administrative')
         self.fee_sheet = self.forms_frame.locator('a.dropdown-item:has-text("Fee Sheet")')
