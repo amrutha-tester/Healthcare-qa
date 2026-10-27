@@ -120,6 +120,7 @@ def test_e2e_workflow(browser: Browser, browser_context_args: dict) -> None:
     physician.page.wait_for_timeout(5000)
     physician.advance_patient_status()
     physician.page.wait_for_timeout(5000)
+    #verify updated status
     physician.verify_updated_status(patient_data["last_name"])
     phys_context.close()
 
