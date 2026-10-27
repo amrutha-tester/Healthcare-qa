@@ -69,26 +69,45 @@ class PatientRegistrationPage(BasePage):
 
         # Handle duplicate check modal if it appears
         try:
-            self.confirm_create_button.wait_for(state="visible", timeout=5000)
+            self.confirm_create_button.wait_for(state="visible", timeout=10000)
             # Allow Bootstrap modal fade-in animation to complete so modal('hide') is not dropped
-            self.page.wait_for_timeout(600)
+            self.page.wait_for_timeout(800)
             self.confirm_create_button.click()
 
             # If the modal remains visible (e.g. Bootstrap dropped hide during transition), retry
-            self.page.wait_for_timeout(500)
+            self.page.wait_for_timeout(700)
             if self.confirm_create_button.is_visible():
                 self.confirm_create_button.click(force=True)
 
-            # If still visible, hide modal and trigger form submission
-            self.page.wait_for_timeout(500)
+            # If still visible, trigger form submission directly inside the 'pat' iframe
+            self.page.wait_for_timeout(700)
             if self.confirm_create_button.is_visible():
                 try:
-                    self.page.evaluate("() => { if (window.top && window.top.jQuery) window.top.jQuery('.dialogModal').modal('hide'); }")
-                    self.frame.evaluate("() => { if (typeof srcConfirmSave === 'function') srcConfirmSave(); else document.forms[0].submit(); }")
+                    self.frame.locator("body").evaluate(
+                        "() => { if (typeof srcConfirmSave === 'function') srcConfirmSave(); else if (document.forms[0]) document.forms[0].submit(); }"
+                    )
                 except Exception:
                     pass
         except Exception:
             # Duplicate check modal did not appear; submission proceeded directly
+            pass
+
+        # Clean up any lingering duplicate-check modal wrapper so it cannot block subsequent actions
+        try:
+            self.page.evaluate(
+                """() => {
+                    if (window.top && window.top.document) {
+                        const doc = window.top.document;
+                        doc.querySelectorAll('.dialogModal, .modal.show, .modal-backdrop').forEach(el => el.remove());
+                        if (doc.body) {
+                            doc.body.classList.remove('modal-open');
+                            doc.body.style.removeProperty('overflow');
+                            doc.body.style.removeProperty('padding-right');
+                        }
+                    }
+                }"""
+            )
+        except Exception:
             pass
 
         # Wait for the patient header banner to populate

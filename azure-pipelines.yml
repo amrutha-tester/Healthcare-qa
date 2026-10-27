@@ -71,6 +71,11 @@ stages:
           - powershell: |
               Write-Host "Running Full Regression & Clinical Workflow Suite on Chromium..."
               docker compose --profile test run --rm playwright-tests pytest -o "addopts=-v --browser=chromium --tracing=retain-on-failure --screenshot=only-on-failure" --junitxml=reports/junit-regression.xml --html=reports/report-regression.html --self-contained-html
+
+              Write-Host "Syncing latest reports back to local Playwright project folder..."
+              $localReports = "C:\Users\user\Desktop\Github\Healthcare-qa\reports"
+              if (Test-Path -Path $localReports) { Remove-Item -Path "$localReports\*" -Recurse -Force } else { New-Item -ItemType Directory -Path $localReports }
+              Copy-Item -Path "reports\*" -Destination $localReports -Recurse -Force
             displayName: '3B. Full Regression & E2E Suite (Chromium)'
             continueOnError: true
 
