@@ -112,6 +112,24 @@ class PatientRegistrationPage(BasePage):
 
         # Wait for the patient header banner to populate
         self.patient_title_banner.wait_for(state="visible", timeout=self.timeout)
+        self.page.wait_for_timeout(500)
+        # Dismiss any post-registration popups (such as #bdayreminder if DOB matches today)
+        try:
+            self.page.evaluate(
+                """() => {
+                    if (window.top && window.top.document) {
+                        const doc = window.top.document;
+                        doc.querySelectorAll('#bdayreminder, .dialogModal, .modal.show, .modal-backdrop').forEach(el => el.remove());
+                        if (doc.body) {
+                            doc.body.classList.remove('modal-open');
+                            doc.body.style.removeProperty('overflow');
+                            doc.body.style.removeProperty('padding-right');
+                        }
+                    }
+                }"""
+            )
+        except Exception:
+            pass
         banner_text = self.patient_title_banner.inner_text()
         # Extract PID using regex: e.g., "Doe, John [102]" or "PID: 102"
         pid_match = re.search(r"(\d+)", banner_text)

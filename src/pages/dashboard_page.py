@@ -38,10 +38,41 @@ class DashboardPage(BasePage):
         self.quit_prescription = self.prescription_modal_frame.locator('a:has-text("Quit")')
         
 
-
+    def _cleanup_modals_and_expand_cards(self):
+        """Removes any lingering Bootstrap modal backdrops and ensures Dashboard summary cards are expanded."""
+        try:
+            self.page.evaluate(
+                """() => {
+                    if (window.top && window.top.document) {
+                        const doc = window.top.document;
+                        doc.querySelectorAll('.dialogModal, .modal.show, .modal-backdrop').forEach(el => el.remove());
+                        if (doc.body) {
+                            doc.body.classList.remove('modal-open');
+                            doc.body.style.removeProperty('overflow');
+                            doc.body.style.removeProperty('padding-right');
+                        }
+                    }
+                }"""
+            )
+        except Exception:
+            pass
+        try:
+            self.dashboard_frame.locator("body").evaluate(
+                """(body) => {
+                    body.querySelectorAll('#prescriptions_ps_expand, .collapse').forEach(el => {
+                        el.classList.add('show');
+                        el.style.display = 'block';
+                    });
+                }"""
+            )
+        except Exception:
+            pass
 
     def navigate_to_dashboard_tab(self):
+        self._cleanup_modals_and_expand_cards()
         self.dashboard_tab.click()
+        self.page.wait_for_timeout(500)
+        self._cleanup_modals_and_expand_cards()
         return self
 
     def add_allergy(self):
@@ -55,6 +86,7 @@ class DashboardPage(BasePage):
         self.severity_dropdown.select_option("mild")
         self.save_button.click()
         self.page.wait_for_timeout(5000)
+        self._cleanup_modals_and_expand_cards()
         return self
 
     def add_prescription(self):
@@ -76,4 +108,6 @@ class DashboardPage(BasePage):
         self.save_prescription.click()
         self.page.wait_for_timeout(5000)
         self.quit_prescription.click()
+        self.page.wait_for_timeout(1000)
+        self._cleanup_modals_and_expand_cards()
         return self

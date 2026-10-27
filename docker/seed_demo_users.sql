@@ -3,6 +3,10 @@ DELETE FROM product_registration;
 INSERT INTO product_registration (email, opt_out, telemetry_disabled, last_ask_version)
 VALUES (NULL, 1, 1, '8.4.1');
 
+-- Disable Birthday Reminder modal popup (#bdayreminder)
+DELETE FROM globals WHERE gl_name = 'patient_birthday_alert';
+INSERT INTO globals (gl_name, gl_index, gl_value) VALUES ('patient_birthday_alert', 0, '0');
+
 -- Create demo users (clinician=5, physician=6 [Donna Lee], receptionist=7, accountant=8)
 DELETE FROM users WHERE id IN (5, 6, 7, 8);
 INSERT INTO users (

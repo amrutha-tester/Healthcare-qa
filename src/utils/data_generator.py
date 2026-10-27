@@ -19,7 +19,7 @@ class PatientDataFactory:
             "first_name": first_name,
             "middle_name": fake.first_name()[0],
             "last_name": last_name,
-            "dob": fake.date_of_birth(minimum_age=18, maximum_age=85).strftime("%Y-%m-%d"),
+            "dob": f"{random.randint(1955, 2000)}-05-15",
             "gender": gender,
             "s.s.": fake.ssn(),
             "phone": fake.numerify(text="555-###-####"),
