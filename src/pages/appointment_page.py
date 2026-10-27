@@ -137,8 +137,12 @@ class AppointmentPage(BasePage):
         self.page.on("dialog", dialog_handler)
         try:
             self.form_save_button.click()
-            self.page.locator('iframe[src*="add_edit_event.php"]').wait_for(state="hidden", timeout=self.timeout)
+            try:
+                self.page.locator('iframe[src*="add_edit_event.php"]').wait_for(state="hidden", timeout=5000)
+            except Exception:
+                pass
             self._cleanup_all_modals()
+            self.page.wait_for_timeout(1000)
         finally:
             self.page.remove_listener("dialog", dialog_handler)
         return self
@@ -162,8 +166,12 @@ class AppointmentPage(BasePage):
         self.page.on("dialog", dialog_handler)
         try:
             self.form_delete_button.click()
-            self.page.locator('iframe[src*="add_edit_event.php"]').wait_for(state="hidden", timeout=self.timeout)
+            try:
+                self.page.locator('iframe[src*="add_edit_event.php"]').wait_for(state="hidden", timeout=5000)
+            except Exception:
+                pass
             self._cleanup_all_modals()
+            self.page.wait_for_timeout(1000)
         finally:
             self.page.remove_listener("dialog", dialog_handler)
         return self

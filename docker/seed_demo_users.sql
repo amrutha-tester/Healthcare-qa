@@ -48,3 +48,9 @@ INSERT INTO gacl_groups_aro_map (group_id, aro_id) VALUES
 (15, 15);
 
 UPDATE gacl_aro_seq SET id = 15;
+
+-- Clear previous test runs' patient appointments and Flow Board entries while keeping provider schedules
+DELETE FROM openemr_postcalendar_events WHERE pc_pid <> '' AND pc_pid IS NOT NULL;
+TRUNCATE TABLE patient_tracker;
+TRUNCATE TABLE patient_tracker_element;
+
