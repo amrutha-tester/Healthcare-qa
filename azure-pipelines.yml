@@ -69,8 +69,14 @@ stages:
 
           # Step 3B: Run Full Regression & Workflow Suite on Chromium
           - powershell: |
+              Write-Host "Resetting OpenEMR test data before Regression Suite..."
+              Get-Content docker\seed_demo_users.sql | docker exec -i healthcare-qa-openemr-1 mariadb --skip-ssl -u openemr --password=openemr -h mysql openemr
+
               Write-Host "Running Full Regression & Clinical Workflow Suite on Chromium..."
               docker compose --profile test run --rm playwright-tests pytest -o "addopts=-v --browser=chromium --tracing=retain-on-failure --screenshot=only-on-failure" --junitxml=reports/junit-regression.xml --html=reports/report-regression.html --self-contained-html
+
+              Write-Host "Cleaning OpenEMR test data after Regression Suite..."
+              Get-Content docker\seed_demo_users.sql | docker exec -i healthcare-qa-openemr-1 mariadb --skip-ssl -u openemr --password=openemr -h mysql openemr
 
               Write-Host "Syncing latest reports back to local Playwright project folder..."
               $localReports = "C:\Users\user\Desktop\Github\Healthcare-qa\reports"

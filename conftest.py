@@ -1,5 +1,34 @@
 
 import os
+import subprocess
+import pytest
+
+def _reset_openemr_db():
+    """Resets OpenEMR test data using docker/seed_demo_users.sql when running locally."""
+    sql_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docker", "seed_demo_users.sql")
+    if os.path.exists(sql_path):
+        try:
+            with open(sql_path, "rb") as f:
+                subprocess.run(
+                    [
+                        "docker", "exec", "-i", "healthcare-qa-openemr-1",
+                        "mariadb", "--skip-ssl", "-u", "openemr",
+                        "--password=openemr", "-h", "mysql", "openemr",
+                    ],
+                    stdin=f,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=15,
+                )
+        except Exception:
+            pass
+
+@pytest.fixture(scope="session", autouse=True)
+def clean_openemr_test_data():
+    """Automatically clears OpenEMR test data before and after every local pytest run."""
+    _reset_openemr_db()
+    yield
+    _reset_openemr_db()
 import pytest
 from playwright.sync_api import Browser, BrowserContext, Page
 from src.pages.base_page import BasePage

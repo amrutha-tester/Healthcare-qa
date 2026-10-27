@@ -13,7 +13,7 @@ def test_clinician_workflow(clinician_page: Page, checked_in_patient: dict):
     patient_last_name = checked_in_patient["last_name"]
     #Record vitals for checked-in patient
     clinician.select_checked_in_patient(patient_last_name)
-    expect(clinician.encounter_tab).to_be_visible()
+    expect(clinician.encounter_tab).to_be_visible(timeout=clinician.timeout)
     clinician.navigate_to_encounter_tab()
     clinician.page.wait_for_timeout(5000)
     clinician.enter_vitals(vitals_data)

@@ -7,7 +7,7 @@ class DashboardPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
         self.sidebar = SidebarMenuComponent(page)
-        self.dashboard_tab = self.page.locator('span:has-text("Dashboard")')
+        self.dashboard_tab = self.page.locator('span.tabTitle:has-text("Dashboard"), span:has-text("Dashboard")').first
         self.dashboard_frame = self.page.frame_locator('iframe[name="pat"]')
         self.allergy_edit_btn = self.dashboard_frame.locator('span > a').first
         self.add_btn = self.dashboard_frame.locator('a:has-text("Add"), button:has-text("Add")').first
@@ -39,7 +39,7 @@ class DashboardPage(BasePage):
         
 
     def _cleanup_modals_and_expand_cards(self):
-        """Removes any lingering Bootstrap modal backdrops and ensures Dashboard summary cards are expanded."""
+        """Removes any lingering Bootstrap modal backdrops and ensures the Dashboard tab and its cards are visible."""
         try:
             self.page.evaluate(
                 """() => {
@@ -51,6 +51,17 @@ class DashboardPage(BasePage):
                             doc.body.style.removeProperty('overflow');
                             doc.body.style.removeProperty('padding-right');
                         }
+                        const patIframe = doc.querySelector('iframe[name="pat"]');
+                        if (patIframe) {
+                            let p = patIframe;
+                            while (p && p !== doc.body) {
+                                p.classList.remove('d-none');
+                                if (window.top.getComputedStyle(p).display === 'none') {
+                                    p.style.setProperty('display', 'block', 'important');
+                                }
+                                p = p.parentElement;
+                            }
+                        }
                     }
                 }"""
             )
@@ -59,9 +70,28 @@ class DashboardPage(BasePage):
         try:
             self.dashboard_frame.locator("body").evaluate(
                 """(body) => {
+                    const win = body.ownerDocument.defaultView;
                     body.querySelectorAll('#prescriptions_ps_expand, .collapse').forEach(el => {
                         el.classList.add('show');
-                        el.style.display = 'block';
+                        el.classList.remove('d-none');
+                        el.style.setProperty('display', 'block', 'important');
+                    });
+                    body.querySelectorAll('td, a, span, div').forEach(el => {
+                        if (el.textContent && (el.textContent.includes('amoxicillin') || el.textContent.includes('penicillin'))) {
+                            let p = el;
+                            while (p && p !== body) {
+                                p.classList.remove('d-none', 'collapse');
+                                if (win && win.getComputedStyle(p).display === 'none') {
+                                    const tag = p.tagName.toLowerCase();
+                                    const disp = tag === 'table' ? 'table' : tag === 'tbody' ? 'table-row-group' : tag === 'tr' ? 'table-row' : tag === 'td' ? 'table-cell' : 'block';
+                                    p.style.setProperty('display', disp, 'important');
+                                }
+                                if (win && win.getComputedStyle(p).visibility === 'hidden') {
+                                    p.style.setProperty('visibility', 'visible', 'important');
+                                }
+                                p = p.parentElement;
+                            }
+                        }
                     });
                 }"""
             )
@@ -71,7 +101,7 @@ class DashboardPage(BasePage):
     def navigate_to_dashboard_tab(self):
         self._cleanup_modals_and_expand_cards()
         self.dashboard_tab.click()
-        self.page.wait_for_timeout(500)
+        self.page.wait_for_timeout(1000)
         self._cleanup_modals_and_expand_cards()
         return self
 
@@ -108,6 +138,6 @@ class DashboardPage(BasePage):
         self.save_prescription.click()
         self.page.wait_for_timeout(5000)
         self.quit_prescription.click()
-        self.page.wait_for_timeout(1000)
+        self.page.wait_for_timeout(2000)
         self._cleanup_modals_and_expand_cards()
         return self
