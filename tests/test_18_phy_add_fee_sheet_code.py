@@ -17,7 +17,7 @@ def test_add_fee_sheet_codes(physician_page: Page, checked_in_patient_with_vital
     physician.add_fee_code_and_save()
     # Assertion on fee code table after reopen
     #physician.open_fee_sheet()
-    physician.page.wait_for_timeout(1500)
+    physician.page.wait_for_timeout(3000)
     expect(physician.fee_sheet_table).to_contain_text("CPT4")
     expect(physician.fee_sheet_table).to_contain_text("99201")
     

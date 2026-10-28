@@ -7,6 +7,7 @@
 [![Azure DevOps](https://img.shields.io/badge/CI%2FCD-Azure%20Pipelines-0078D7.svg?logo=azuredevops&logoColor=white)](https://azure.microsoft.com/en-us/products/devops/pipelines)
 [![Browsers](https://img.shields.io/badge/Browsers-Chromium%20%7C%20Firefox%20%7C%20WebKit-orange.svg)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Page%20Object%20Model%20(POM)-purple.svg)]()
+[![Standards](https://img.shields.io/badge/Healthcare%20QA-IEC%2062304%20%7C%20ISO%2013485%20%7C%2021%20CFR%20Part%2011-008080.svg)](docs/TEST_PLAN.md)
 
 A modern, containerized end-to-end UI test automation framework for **OpenEMR** built with **Python**, **Playwright**, **pytest**, **Docker Compose**, and **Azure DevOps Pipelines**.
 
@@ -18,6 +19,7 @@ This framework simulates real-world clinical workflows and validates Role-Based 
 
 - [Overview](#-overview)
 - [Key Features](#-key-features)
+- [Regulatory Compliance & V&V Documentation](#-regulatory-compliance--vv-documentation)
 - [Architecture & Tech Stack](#-architecture--tech-stack)
 - [Test Coverage Matrix](#-test-coverage-matrix)
 - [Project Structure](#-project-structure)
@@ -57,6 +59,23 @@ This framework solves these challenges by combining:
 - **🧹 Self-Cleaning Database State**: Automatic `autouse` session fixture and CI SQL scripts that reset clinical tables (`patient_data`, `openemr_postcalendar_events`, `form_encounter`, `forms`, `esign_signatures`, `patient_tracker`) before and after every run.
 - **🐳 Fully Containerized Stack**: `docker-compose.yml` spins up MariaDB 11.4, OpenEMR, and the Playwright test runner container in an isolated network.
 - **🔄 Azure DevOps CI/CD Pipeline**: Automated two-stage test execution (Cross-Browser Smoke Suite + Full Chromium Regression & E2E Suite) with JUnit XML test analytics and self-contained HTML report artifacts.
+
+---
+
+## 🛡️ Regulatory Compliance & V&V Documentation
+
+In regulated Healthcare IT and MedTech environments, software verification must demonstrate **risk-based test prioritization**, **requirements traceability**, **electronic record integrity**, and **repeatable audit evidence**. This repository includes formal Verification & Validation (V&V) artifacts aligned with healthcare software standards:
+
+| Document | Standard / Regulation Alignment | Description |
+| :--- | :--- | :--- |
+| 📋 **[Software V&V Test Plan](docs/TEST_PLAN.md)** | **IEC 62304** & **ISO 13485** | Defines verification scope, risk-based safety classification (**Class A, B, C**), multi-browser test levels, Docker environment controls, and entry/exit criteria. |
+| 🔗 **[Requirements Traceability Matrix (RTM)](docs/TRACEABILITY_MATRIX.md)** | **IEC 62304**, **ISO 14971**, **FDA 21 CFR Part 11**, **HIPAA** | Maps `22` clinical & system requirements (`REQ-001` – `REQ-022`) to safety classes, automated pytest scripts (`46 test executions`), and CI verification results (`100% PASS`). |
+| 🛠️ **[CI/CD Troubleshooting & Engineering Log](docs/PIPELINE_TROUBLESHOOTING_LOG.md)** | **ISO 13485 CAPA / Engineering Traceability** | Chronicles 12 real-world Docker, Playwright, and Azure DevOps engineering challenges, root causes, and solutions. |
+
+### Key Healthcare Regulatory Controls Verified by This Suite:
+- **IEC 62304 & ISO 14971 (Clinical Risk Management):** Prioritizes **Class C** patient-safety critical paths, including drug allergy alerts (`test_12`), medication prescribing (`test_17`), abnormal/invalid vitals detection (`test_11`), and duplicate patient identity warnings (`test_04`).
+- **FDA 21 CFR Part 11 (Electronic Records & Signatures):** Verifies that physician SOAP notes require password authentication to sign (`test_14`, `test_15`), transition to an immutable `Locked` state upon signing, and reject invalid credentials (`test_16`).
+- **HIPAA Security & Privacy Rules (`45 CFR § 164.312`):** Enforces least-privilege Role-Based Access Control across 5 clinical personas (`test_02`) and uses 100% synthetic, non-PHI test data (`PatientDataFactory`).
 
 ---
 
@@ -115,6 +134,11 @@ This framework solves these challenges by combining:
 
 ```text
 Healthcare-qa/
+├── docs/
+│   ├── TEST_PLAN.md                      # IEC 62304 / ISO 13485 Software Verification Test Plan
+│   ├── TRACEABILITY_MATRIX.md            # Requirements Traceability Matrix (REQ-001 to REQ-022 -> Tests -> Results)
+│   ├── PIPELINE_TROUBLESHOOTING_LOG.md   # Engineering log of 12 CI/CD & Docker issues resolved
+│   └── screenshots/                      # Azure DevOps CI/CD & Test Analytics screenshots
 ├── docker/
 │   └── seed_demo_users.sql               # Seeds GACL roles, bcrypt passwords & resets clinical test tables
 ├── src/
