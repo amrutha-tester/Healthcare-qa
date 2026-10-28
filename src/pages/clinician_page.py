@@ -46,11 +46,11 @@ class ClinicianPage(BasePage):
     #Navigate to flowboard
     def select_checked_in_patient(self, patient_name):
         self.sidebar.navigate_to_flowboard()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         self.provider_select.select_option("6")
         self.patient_name_input.fill(patient_name)
         self.filter_button.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")').first
         expect(patient_locator).to_be_visible(timeout=self.timeout)
         expect(patient_locator.locator('a.btn:has-text("Room 1")')).to_be_visible()
@@ -112,7 +112,7 @@ class ClinicianPage(BasePage):
             }
         }""")
         self.save_vitals.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         return self
     
     def open_past_encounter(self, encounter_category: str = None):
@@ -163,18 +163,18 @@ class ClinicianPage(BasePage):
     def locate_patient_in_flowboard(self, patient_name):
         """Locates the patient in the flowboard."""
         self.sidebar.navigate_to_flowboard()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         self.provider_select.select_option("6")
         self.patient_name_input.fill(patient_name)
         self.filter_button.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")')
         expect(patient_locator).to_be_visible(timeout=self.timeout)
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         appt_status = patient_locator.locator('a.btn:has-text("Room 1")').first
         expect(appt_status).to_be_visible(timeout=self.timeout)
         appt_status.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         return self
     
     #Patient status advance function

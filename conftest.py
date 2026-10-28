@@ -162,13 +162,13 @@ def checked_in_patient(receptionist_page, registered_patient: dict) -> dict:
     appointment_page.open_new_appointment()
     appointment_page.fill_appointment_details(appointment_data)
     appointment_page.save_appointment()
-    appointment_page.page.wait_for_timeout(3000)
+    appointment_page.page.wait_for_timeout(1500)
     # 2. Check in the patient
     appointment_page.open_existing_appointment(patient_last_name)
-    appointment_page.page.wait_for_timeout(3000)
+    appointment_page.page.wait_for_timeout(1500)
     appointment_page.check_in_patient()
     appointment_page.save_appointment()
-    appointment_page.page.wait_for_timeout(3000)
+    appointment_page.page.wait_for_timeout(1500)
     receptionist_page.context.close()
     return {
         **registered_patient,
@@ -189,11 +189,11 @@ def checked_in_patient_with_vitals(clinician_page: Page, checked_in_patient: dic
     # 1. Select checked-in patient in flowboard and navigate to encounter
     clinician.select_checked_in_patient(patient_last_name)
     clinician.navigate_to_encounter_tab()
-    clinician.page.wait_for_timeout(3000)
+    clinician.page.wait_for_timeout(1500)
     
     # 2. Enter and save vitals
     clinician.enter_vitals(vitals_data)
-    clinician.page.wait_for_timeout(3000)
+    clinician.page.wait_for_timeout(1500)
     clinician_page.context.close()
     
     return {
@@ -215,15 +215,15 @@ def patient_with_soap_note(physician_page: Page, checked_in_patient_with_vitals:
     # 1. Select checked-in patient in flowboard and navigate to encounter
     physician.select_patient_from_flowboard(patient_last_name)
     physician.navigate_to_encounter_tab()
-    physician.page.wait_for_timeout(3000)
+    physician.page.wait_for_timeout(1500)
     # 2. Fill and save soap note
     physician.open_soap_form()
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     physician.fill_soap_form(soap_note_data)
     physician.save_soap_form()
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     physician.sign_soap_form("physician")
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     physician_page.context.close()
     return {
         **checked_in_patient_with_vitals,

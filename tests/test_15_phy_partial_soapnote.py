@@ -11,21 +11,21 @@ def test_partial_soap_note(physician_page: Page, checked_in_patient_with_vitals:
     physician.select_patient_from_flowboard(patient_last_name)
     expect(physician.encounter_tab).to_be_visible(timeout=physician.timeout)
     physician.navigate_to_encounter_tab()
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     physician.open_soap_form()
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     physician.fill_soap_form(soap_note_data)
     physician.save_soap_form()
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     physician.sign_soap_form("physician")
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     physician.verify_soap_signed()
     #Verify entered fields are visible in summary
     expect(physician.summary_frame.get_by_text("Subjective:")).to_be_visible()
     expect(physician.summary_frame.get_by_text("Assessment:")).to_be_visible()
     #Verify omitted 'Plan' section is NOT visible
     expect(physician.summary_frame.get_by_text("Plan:")).not_to_be_visible()
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     #Verify SOAP note is locked after e-signature
     expect(physician.soap_locked_badge).to_be_visible()
 

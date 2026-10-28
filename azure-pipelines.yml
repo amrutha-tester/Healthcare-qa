@@ -17,7 +17,7 @@ stages:
     jobs:
       - job: RunPlaywrightInDocker
         displayName: 'Run OpenEMR & Playwright in Docker'
-        timeoutInMinutes: 30
+        timeoutInMinutes: 60
         steps:
           # Step 1: Start OpenEMR & MariaDB containers
           - powershell: |

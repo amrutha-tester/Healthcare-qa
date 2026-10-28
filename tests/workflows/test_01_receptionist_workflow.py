@@ -14,13 +14,13 @@ def test_receptionist_workflow(receptionist_page: Page, registered_patient: dict
     appointment_page.open_new_appointment()
     appointment_page.fill_appointment_details(appointment_data)
     appointment_page.save_appointment()
-    appointment_page.page.wait_for_timeout(5000)
+    appointment_page.page.wait_for_timeout(1500)
     # Opens existing appointment and checks in the patient
     appointment_page.open_existing_appointment(patient_last_name)
-    appointment_page.page.wait_for_timeout(5000)
+    appointment_page.page.wait_for_timeout(1500)
     appointment_page.check_in_patient()
     appointment_page.save_appointment()
-    appointment_page.page.wait_for_timeout(5000)
+    appointment_page.page.wait_for_timeout(1500)
     # verify arrived status in flowboard
     appointment_page.navigate_to_flowboard()
     checked_in_patient = appointment_page.flowboard_frame.locator(f'tr:has-text("{patient_last_name}")')

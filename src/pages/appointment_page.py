@@ -190,5 +190,5 @@ class AppointmentPage(BasePage):
     def navigate_to_flowboard(self):
         """Navigate to flowboard"""
         self.sidebar.navigate_to_flowboard()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         return self

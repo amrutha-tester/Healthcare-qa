@@ -12,13 +12,13 @@ def test_add_prescription(physician_page: Page, checked_in_patient_with_vitals: 
     dashboard = DashboardPage(physician_page)
     patient_last_name = checked_in_patient_with_vitals["last_name"]
     physician.select_patient_from_flowboard(patient_last_name)
-    physician.page.wait_for_timeout(5000)
+    physician.page.wait_for_timeout(1500)
     dashboard.navigate_to_dashboard_tab()
-    dashboard.page.wait_for_timeout(5000)
+    dashboard.page.wait_for_timeout(1500)
     dashboard.add_prescription()
-    dashboard.page.wait_for_timeout(5000)
+    dashboard.page.wait_for_timeout(1500)
     dashboard.navigate_to_dashboard_tab()
-    dashboard.page.wait_for_timeout(5000)
+    dashboard.page.wait_for_timeout(1500)
     expect(dashboard.dashboard_frame.get_by_text("amoxicillin")).to_be_visible(timeout=dashboard.timeout)
     expect(dashboard.dashboard_frame.get_by_text("500mg 2 in tablet Daily")).to_be_visible(timeout=dashboard.timeout)
    

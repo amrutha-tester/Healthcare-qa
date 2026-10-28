@@ -62,11 +62,11 @@ class PhysicianPage(BasePage):
 
     def select_patient_from_flowboard(self, patient_name):
         self.sidebar.navigate_to_flowboard()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         self.provider_select.select_option("6")
         self.patient_name_input.fill(patient_name)
         self.filter_button.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")')
         expect(patient_locator).to_be_visible(timeout=self.timeout)
          # Click the patient link to open their encounter/chart
@@ -85,7 +85,7 @@ class PhysicianPage(BasePage):
         self.clinical_menu.click()
         self.soap_link.wait_for(state="visible", timeout=self.timeout)
         self.soap_link.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         return self
 
     def fill_soap_form(self, soap_data: dict):
@@ -125,18 +125,18 @@ class PhysicianPage(BasePage):
     def locate_patient_in_flowboard(self, patient_name):
         """Locates the patient in the flowboard."""
         self.sidebar.navigate_to_flowboard()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         self.provider_select.select_option("6")
         self.patient_name_input.fill(patient_name)
         self.filter_button.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_name}")')
         expect(patient_locator).to_be_visible(timeout=self.timeout)
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         appt_status = patient_locator.locator('a.btn:has-text("Room 1")').first
         expect(appt_status).to_be_visible(timeout=self.timeout)
         appt_status.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         return self
 
     def advance_patient_status(self):
@@ -151,7 +151,7 @@ class PhysicianPage(BasePage):
         return self
 
     def verify_updated_status(self,patient_last_name):
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         self.visit_status.select_option(value="$")
         self.filter_button.click()
         patient_locator = self.flowboard_frame.locator(f'tr:has-text("{patient_last_name}")')
@@ -162,7 +162,7 @@ class PhysicianPage(BasePage):
         self.administrative_tab.click()
         self.fee_sheet.wait_for(state="visible", timeout=self.timeout)
         self.fee_sheet.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         return self
 
     def add_fee_code_and_save(self):
@@ -175,7 +175,7 @@ class PhysicianPage(BasePage):
         expect(self.fee_sheet_table).to_contain_text("CPT4", timeout=self.timeout)
         self.fee_sheet_save.wait_for(state="visible", timeout=self.timeout)
         self.fee_sheet_save.click()
-        self.page.wait_for_timeout(5000)
+        self.page.wait_for_timeout(1500)
         return self    
 
     
